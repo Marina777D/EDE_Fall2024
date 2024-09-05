@@ -22,22 +22,22 @@ Enter answers to the questions just below the >Answer: prompt.
 
 1. What are your previous experiences with data analytics, R, and Git? Include both formal and informal training.
 
-> Answer: 
+> Answer: I don't have a lot experiences with data. This is also my first time using R or Git.
 
 2. Are there any components of the course about which you feel confident?
 
-> Answer: 
+> Answer: The instructions are very clear and easy to follow.
 
 3. Are there any components of the course about which you feel apprehensive?
 
-> Answer: 
+> Answer: Not yet.
 
 
 ## 2) GitHub
 
 Provide a link below to your forked course repository in GitHub. Make sure you have pulled all recent changes from the course repository and that you have updated your course README file, committed those changes, and pushed them to your GitHub account. 
 
-> Answer: 
+> Answer: https://github.com/Marina777D/EDE_Fall2024
 
 ## 3) Knitting
 When you have completed this document, click the `knit` button.This should produce a PDF copy of your markdown document. Submit this PDF to Canvas 
