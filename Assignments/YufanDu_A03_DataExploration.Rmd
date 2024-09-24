@@ -37,6 +37,7 @@ This exercise accompanies the lessons in Environmental Data Analytics on Data Ex
 library(tidyverse)
 library(lubridate)
 library(here)
+library(ggplot2)
 
 # Check the working directory
 getwd()
@@ -174,7 +175,7 @@ unique(Litter$collectDate)
 unique(Litter$plotID)
 ```
 
-> Answer: Unique provides distinct values. Summary provides an overview of counts and add everything together.
+> Answer: Unique lists every polt. And summary adds everything together and provides an overview of counts.
 
 14. Create a bar graph of functionalGroup counts. This shows you what type of litter is collected at the Niwot Ridge sites. Notice that litter types are fairly equally distributed across the Niwot Ridge sites.
 
@@ -188,40 +189,30 @@ ggplot(Litter, aes(x = functionalGroup)) +
 15. Using `geom_boxplot` and `geom_violin`, create a boxplot and a violin plot of dryMass by functionalGroup.
 
 ```{r boxplot}
-# Boxplot 
+# Covert data to numeric
+Litter$dryMass <- as.numeric(as.character(Litter$dryMass))
+
+# Boxplot graph of functional groups
 ggplot(Litter, aes(x = functionalGroup, y = dryMass)) +
-  geom_boxplot() +
-  labs(title = "Dry Mass by Functional Group", x = "Functional Group", y = "Dry Mass")
+  geom_boxplot() + 
+  labs(title = "Boxplot of Dry Mass by Functional Group", x = "Functional Group", y = "Dry Mass") +
+  theme_minimal()
+```
 
-# Load necessary libraries
-library(ggplot2)
 
-# Boxplot of dryMass by functionalGroup
+```{r  violin}
+# Boxplot graph of functional groups
 ggplot(Litter, aes(x = functionalGroup, y = dryMass)) +
-  geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
-  labs(title = "Boxplot of Dry Mass by Functional Group", 
-       x = "Functional Group", 
-       y = "Dry Mass (g)") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Violin plot of dryMass by functionalGroup
-ggplot(Litter, aes(x = functionalGroup, y = dryMass)) +
-  geom_violin(trim = FALSE, fill = "skyblue") +
-  geom_boxplot(width = 0.1, outlier.shape = NA, color = "black") + # Add boxplot inside the violin plot
-  labs(title = "Violin Plot of Dry Mass by Functional Group", 
-       x = "Functional Group", 
-       y = "Dry Mass (g)") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+  geom_violin(trim = FALSE, fill = "lightblue", color = "black", scale = "width") + # Ensures the tails of the violin are displayed
+  labs(title = "Violin Plot of Dry Mass by Functional Group", x = "Functional Group", y = "Dry Mass") +
+  theme_minimal() 
 ```
 
 
 Why is the boxplot a more effective visualization option than the violin plot in this case?
 
-> Answer:
+> Answer: This is because Violin plot only has a shape. But boxplot shows median, quartiles, and potential outliers.
 
 What type(s) of litter tend to have the highest biomass at these sites?
 
-> Answer:
+> Answer: Needles
