@@ -59,14 +59,15 @@ Litter <- read_csv(here("~/EDE_Fall2024/Data/Raw/NEON_NIWO_Litter_massdata_2018-
 
 3.  The Niwot Ridge litter and woody debris dataset was collected from the National Ecological Observatory Network, which collectively includes 81 aquatic and terrestrial sites across 20 ecoclimatic domains. 32 of these sites sample forest litter and woody debris, and we will focus on the Niwot Ridge long-term ecological research (LTER) station in Colorado. Why might we be interested in studying litter and woody debris that falls to the ground in forests? Feel free to do a brief internet search if you feel you need more background information.
 
-> Answer: Forest litter and woody debris play a significant role in nutrient cycling, carbon storage, and habitat provision for various organisms. Understanding these dynamics can help manage forest health and ecosystem services.
+> Answer: Forest litter and woody debris play a significant role in nutrient cycling, carbon storage, and habitat provision for various organisms.
+Woody debris is an important part of forest and stream ecosystems because it has a role in carbon budgets and nutrient cycling, is a source of energy for aquatic ecosystems, provides habitat for terrestrial and aquatic organisms, and contributes to structure and roughness, thereby influencing water flows and sediment transport (Harmon and others 1986). 
 
 4.  How is litter and woody debris sampled as part of the NEON network? Read the NEON_Litterfall_UserGuide.pdf document to learn more. List three pieces of salient information about the sampling methods here:
 
 > Answer: 
- 1.
- 2.
- 3. 
+ 1.Spatial Sampling Design: Litter and fine woody debris are sampled using elevated and ground traps at NEON sites with woody vegetation taller than 2 meters. Elevated traps are 0.5 m² mesh baskets positioned approximately 80 cm above the ground, collecting materials with a diameter less than 2 cm and length less than 50 cm. Ground traps are larger, rectangular areas (3 m x 0.5 m), designed to capture longer debris not effectively collected by the elevated traps
+ 2.Temporal Sampling Design: Elevated traps are sampled frequently, especially in deciduous forest sites during leaf fall (every two weeks) and less frequently (every 1-2 months) at evergreen sites. Ground traps are sampled once per year. The temporal resolution varies depending on the vegetation type and seasonality, adjusting to account for periods of high or low litterfall production
+ 3. Sampling Locations and Plot Design: Litterfall sampling occurs in specific plots within NEON sites, including 40 m x 40 m tower plots and 20 m x 20 m plots, depending on the vegetation structure. Traps are placed either randomly or targeted, depending on vegetation cover, to ensure representative sampling. Plot and trap locations are carefully designed to avoid interference with other ecological measurements and maintain adequate spacing between plots
 
 ## Obtain basic summaries of your data (Neonics)
 
@@ -75,7 +76,6 @@ Litter <- read_csv(here("~/EDE_Fall2024/Data/Raw/NEON_NIWO_Litter_massdata_2018-
 ```{r dimension}
 # Check dimensions of the dataset
 dim(Neonics)
-
 ```
 
 6.  Using the `summary` function on the "Effect" column, determine the most common effects that are studied. Why might these effects specifically be of interest? [Tip: The `sort()` command is useful for listing the values in order of magnitude...]
@@ -85,18 +85,20 @@ dim(Neonics)
 sort(summary(Neonics$Effect), decreasing = TRUE)
 ```
 
-> Answer:
+> Answer:The most common effect that is studied is population. This is probably because population is a basic information for most study.
 
 
 7.  Using the `summary` function, determine the six most commonly studied species in the dataset (common name). What do these species have in common, and why might they be of interest over other insects? Feel free to do a brief internet search for more information if needed.[TIP: Explore the help on the `summary()` function, in particular the `maxsum` argument...]
 
 ```{r summary}
 # Summary of the species column with maxsum option
-summary(Neonics$`Species Common Name`, maxsum = 6)
+summary(Neonics$`Species Common Name`, maxsum = 7 )
 
 ```
 
-> Answer:
+> Answer: The six most commnoly studies speacies are honey bee, parasitic wasp buff, buff tailed bumblebee, carniolan honey bee, bumble bee and Italian honeybee.
+Common things: They are widely distributed, have significant roles in pollination, and are easily manageable for research. 
+Why interest over other bees: These species are crucial for large-scale crop pollination, have unique behaviors and resilience traits, and are highly impacted by diseases and environmental changes, making them vital for studies on ecological and agricultural sustainability.
 
 8.  Concentrations are always a numeric value. What is the class of `Conc.1..Author.` column in the dataset, and why is it not numeric? [Tip: Viewing the dataframe may be helpful...]
 
@@ -105,7 +107,8 @@ summary(Neonics$`Species Common Name`, maxsum = 6)
 class(Neonics$`Conc 1 (Author)`)
 ```
 
-> Answer:
+> Answer:The class is factor. It's not numeric because names are not numbers. Factors are used in R to represent categorical data, which occurs when the column includes values that cannot be directly converted to numbers.
+
 
 ## Explore your data graphically (Neonics)
 
@@ -113,32 +116,29 @@ class(Neonics$`Conc 1 (Author)`)
 
 ```{r plot}
 # Plot using geom_bar to handle the discrete nature of the Publication_Year
-ggplot(Neonics, aes(x = Publication_Year)) + 
-  geom_bar(fill = "green", color = "black") +
+ggplot(Neonics, aes(x = `Publication Year`, group = 1)) + 
+  geom_freqpoly(stat = "count", color = "blue", linewidth = 1) +
   labs(title = "Number of Studies by Publication Year", 
        x = "Year", 
        y = "Number of Studies") +
-  theme_minimal() +
-  scale_x_discrete(breaks = unique(Neonics$Publication_Year)) # Explicitly treating years as discrete
+  theme_minimal() 
 ```
 
 10. Reproduce the same graph but now add a color aesthetic so that different Test.Location are displayed as different colors.
 
-```{r location}
-# Plot using geom_bar with color aesthetic for Test_Location
-ggplot(Neonics, aes(x = `Publication Year`, fill = `Test Location`)) + 
-  geom_bar(color = "black") +
-  labs(title = "Number of Studies by Publication Year and Test Location", 
+```{r more color}
+# Plot using geom_bar to handle the discrete nature of the Publication_Year
+ggplot(Neonics, aes(x = `Publication Year`, color = `Test Location`, group = `Test Location`)) + 
+  geom_freqpoly(stat = "count", linewidth = 1) +
+  labs(title = "Number of Studies Conducted by Publication Year by Test Location", 
        x = "Year", 
        y = "Number of Studies") +
-  theme_minimal() +
-  scale_x_discrete(breaks = unique(Neonics$Publication_Year)) + # Explicitly treat years as discrete
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) # Adjust x-axis text for better readability
+  theme_minimal() 
 ```
 
 Interpret this graph. What are the most common test locations, and do they differ over time?
 
-> Answer: The most common location is lab in most years from the beginning. And then the most common location changed to firled natural later.
+> Answer: The most common location was lab. And then after 2002, the most common location changed to firled natural. They differ over time.
 
 11. Create a bar graph of Endpoint counts. What are the two most common end points, and how are they defined? Consult the ECOTOX_CodeAppendix for more information. 
 
@@ -160,7 +160,7 @@ NOEL means No-observable-effect-level: highest dose (concentration) producing ef
 
 12. Determine the class of collectDate. Is it a date? If not, change to a date and confirm the new class of the variable. Using the `unique` function, determine which dates litter was sampled in August 2018.
 
-```{r date}
+```{r litter}
 # Check and convert collectDate to date class
 class(Litter$collectDate)
 Litter$collectDate <- ymd(Litter$collectDate)
