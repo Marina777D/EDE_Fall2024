@@ -116,7 +116,7 @@ class(Neonics$`Conc 1 (Author)`)
 9.  Using `geom_freqpoly`, generate a plot of the number of studies conducted by publication year.
 
 ```{r plot}
-# Plot using geom_bar to handle the discrete nature of the Publication_Year
+# Line graph of publication year
 ggplot(Neonics, aes(x = `Publication Year`, group = 1)) + 
   geom_freqpoly(stat = "count", color = "blue", linewidth = 1) +
   labs(title = "Number of Studies by Publication Year", 
@@ -128,7 +128,7 @@ ggplot(Neonics, aes(x = `Publication Year`, group = 1)) +
 10. Reproduce the same graph but now add a color aesthetic so that different Test.Location are displayed as different colors.
 
 ```{r more color}
-# Plot using geom_bar to handle the discrete nature of the Publication_Year
+# More color added
 ggplot(Neonics, aes(x = `Publication Year`, color = `Test Location`, group = `Test Location`)) + 
   geom_freqpoly(stat = "count", linewidth = 1) +
   labs(title = "Number of Studies Conducted by Publication Year by Test Location", 
