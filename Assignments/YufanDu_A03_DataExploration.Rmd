@@ -92,7 +92,7 @@ sort(summary(Neonics$Effect), decreasing = TRUE)
 
 ```{r summary}
 # Summary of the species column with maxsum option
-summary(Neonics$`functionalGroup`, maxsum = 6)
+summary(Neonics$`Species Common Name`, maxsum = 6)
 
 ```
 
@@ -100,9 +100,9 @@ summary(Neonics$`functionalGroup`, maxsum = 6)
 
 8.  Concentrations are always a numeric value. What is the class of `Conc.1..Author.` column in the dataset, and why is it not numeric? [Tip: Viewing the dataframe may be helpful...]
 
-```{r}
-
-
+```{r conc}
+# Check class of the concentration column
+class(Neonics$`Conc 1 (Author)`)
 ```
 
 > Answer:
@@ -111,64 +111,112 @@ summary(Neonics$`functionalGroup`, maxsum = 6)
 
 9.  Using `geom_freqpoly`, generate a plot of the number of studies conducted by publication year.
 
-```{r}
-
-
+```{r plot}
+# Plot using geom_bar to handle the discrete nature of the Publication_Year
+ggplot(Neonics, aes(x = Publication_Year)) + 
+  geom_bar(fill = "green", color = "black") +
+  labs(title = "Number of Studies by Publication Year", 
+       x = "Year", 
+       y = "Number of Studies") +
+  theme_minimal() +
+  scale_x_discrete(breaks = unique(Neonics$Publication_Year)) # Explicitly treating years as discrete
 ```
 
 10. Reproduce the same graph but now add a color aesthetic so that different Test.Location are displayed as different colors.
 
-```{r}
-
-
+```{r location}
+# Plot using geom_bar with color aesthetic for Test_Location
+ggplot(Neonics, aes(x = `Publication Year`, fill = `Test Location`)) + 
+  geom_bar(color = "black") +
+  labs(title = "Number of Studies by Publication Year and Test Location", 
+       x = "Year", 
+       y = "Number of Studies") +
+  theme_minimal() +
+  scale_x_discrete(breaks = unique(Neonics$Publication_Year)) + # Explicitly treat years as discrete
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) # Adjust x-axis text for better readability
 ```
 
 Interpret this graph. What are the most common test locations, and do they differ over time?
 
-> Answer:
+> Answer: The most common location is lab in most years from the beginning. And then the most common location changed to firled natural later.
 
 11. Create a bar graph of Endpoint counts. What are the two most common end points, and how are they defined? Consult the ECOTOX_CodeAppendix for more information. 
 
 [**TIP**: Add `theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))` to the end of your plot command to rotate and align the X-axis labels...]
 
-```{r}
-
-
+```{r endpoint}
+# Bar graph of endpoint counts
+ggplot(Neonics, aes(x = Endpoint)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  labs(title = "Endpoint Counts", x = "Endpoint", y = "Count")
 ```
 
-> Answer:
+> Answer: NOEL and LOEL.
+LOEL means Lowest-observable-effect-level: lowest dose (concentration) producing effects that were significantly different (as reported by authors) from responses of controls (LOEAL/LOEC).
+NOEL means No-observable-effect-level: highest dose (concentration) producing effects not significantly different from responses of controls according to author's reported statistical test (NOEAL/NOEC).
 
 ## Explore your data (Litter)
 
 12. Determine the class of collectDate. Is it a date? If not, change to a date and confirm the new class of the variable. Using the `unique` function, determine which dates litter was sampled in August 2018.
 
-```{r}
-
-
+```{r date}
+# Check and convert collectDate to date class
+class(Litter$collectDate)
+Litter$collectDate <- ymd(Litter$collectDate)
+unique(Litter$collectDate)
 ```
 
 13. Using the `unique` function, determine how many different plots were sampled at Niwot Ridge. How is the information obtained from `unique` different from that obtained from `summary`?
 
-```{r}
-
-
+```{r plots}
+# Unique plots
+unique(Litter$plotID)
 ```
 
-> Answer:
+> Answer: Unique provides distinct values. Summary provides an overview of counts and add everything together.
 
 14. Create a bar graph of functionalGroup counts. This shows you what type of litter is collected at the Niwot Ridge sites. Notice that litter types are fairly equally distributed across the Niwot Ridge sites.
 
-```{r}
-
-
+```{r functionalGroup}
+# Bar graph of functional groups
+ggplot(Litter, aes(x = functionalGroup)) + 
+  geom_bar() + 
+  labs(title = "Functional Group Counts", x = "Functional Group", y = "Count")
 ```
 
 15. Using `geom_boxplot` and `geom_violin`, create a boxplot and a violin plot of dryMass by functionalGroup.
 
-```{r}
+```{r boxplot}
+# Boxplot 
+ggplot(Litter, aes(x = functionalGroup, y = dryMass)) +
+  geom_boxplot() +
+  labs(title = "Dry Mass by Functional Group", x = "Functional Group", y = "Dry Mass")
 
+# Load necessary libraries
+library(ggplot2)
+
+# Boxplot of dryMass by functionalGroup
+ggplot(Litter, aes(x = functionalGroup, y = dryMass)) +
+  geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
+  labs(title = "Boxplot of Dry Mass by Functional Group", 
+       x = "Functional Group", 
+       y = "Dry Mass (g)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Violin plot of dryMass by functionalGroup
+ggplot(Litter, aes(x = functionalGroup, y = dryMass)) +
+  geom_violin(trim = FALSE, fill = "skyblue") +
+  geom_boxplot(width = 0.1, outlier.shape = NA, color = "black") + # Add boxplot inside the violin plot
+  labs(title = "Violin Plot of Dry Mass by Functional Group", 
+       x = "Functional Group", 
+       y = "Dry Mass (g)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
+
 
 Why is the boxplot a more effective visualization option than the violin plot in this case?
 
