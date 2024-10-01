@@ -38,17 +38,46 @@ library(here)
 #1b  check working directory
 here()
 
-#1c Read in the four datasets, setting string columns as factors
-epa_o3_2018 <- read_csv(here("Data","Raw","EPAair_O3_NC2018_raw.csv"), col_types = cols(.default = "f"))
-epa_o3_2019 <- read_csv(here("Data","Raw","EPAair_O3_NC2019_raw.csv"), col_types = cols(.default = "f"))
-epa_pm25_2018 <- read_csv(here("Data","Raw","EPAair_PM25_NC2018_raw.csv"), col_types = cols(.default = "f"))
-epa_pm25_2019 <- read_csv(here("Data","Raw","EPAair_PM25_NC2019_raw.csv"), col_types = cols(.default = "f"))
+#1c 
+# Read datasets without converting to factors initially
+epa_o3_2018 <- read_csv(here("Data", "Raw", "EPAair_O3_NC2018_raw.csv"))
+epa_o3_2019 <- read_csv(here("Data", "Raw", "EPAair_O3_NC2019_raw.csv"))
+epa_pm25_2018 <- read_csv(here("Data", "Raw", "EPAair_PM25_NC2018_raw.csv"))
+epa_pm25_2019 <- read_csv(here("Data", "Raw", "EPAair_PM25_NC2019_raw.csv"))
+
+# Convert Date columns to date format (I Have to move 3 here, otherwise it keeps give me warning)
+epa_o3_2018 <- epa_o3_2018 %>%
+  mutate(Date = mdy(Date))
+
+epa_o3_2019 <- epa_o3_2019 %>%
+  mutate(Date = mdy(Date))
+
+epa_pm25_2018 <- epa_pm25_2018 %>%
+  mutate(Date = mdy(Date))
+
+epa_pm25_2019 <- epa_pm25_2019 %>%
+  mutate(Date = mdy(Date))
+
+# Convert all other character columns to factors
+epa_o3_2018 <- epa_o3_2018 %>%
+  mutate(across(where(is.character), as.factor))
+
+epa_o3_2019 <- epa_o3_2019 %>%
+  mutate(across(where(is.character), as.factor))
+
+epa_pm25_2018 <- epa_pm25_2018 %>%
+  mutate(across(where(is.character), as.factor))
+
+epa_pm25_2019 <- epa_pm25_2019 %>%
+  mutate(across(where(is.character), as.factor))
+
 
 #2  Display the dimensions (rows and columns) of each dataset
 dim(epa_o3_2018)  # Dimensions of Ozone data for 2018
 dim(epa_o3_2019)  # Dimensions of Ozone data for 2019
 dim(epa_pm25_2018)  # Dimensions of PM2.5 data for 2018
 dim(epa_pm25_2019)  # Dimensions of PM2.5 data for 2019
+
 
 ```
 
@@ -67,18 +96,8 @@ Yes, it does.
 
 ```{r questions 3 thru 4}
 
-#3 Convert the Date column to Date type using lubridate
-epa_o3_2018 <- epa_o3_2018 %>%
-  mutate(Date = mdy(Date)) 
+#3 I moved it to 1c. Otherwise, I keep getting empty Data column.
 
-epa_o3_2019 <- epa_o3_2019 %>%
-  mutate(Date = mdy(Date))
-
-epa_pm25_2018 <- epa_pm25_2018 %>%
-  mutate(Date = mdy(Date))
-
-epa_pm25_2019 <- epa_pm25_2019 %>%
-  mutate(Date = mdy(Date))
 
 #4 Select the required columns
 epa_o3_2018 <- epa_o3_2018 %>%
@@ -140,11 +159,6 @@ write_csv(epa_pm25_2019, here("Data","Processed", "EPAair_PM25_NC2019_processed.
 #7 Combine the datasets with rbind
 epa_combined <- rbind(epa_o3_2018, epa_o3_2019, epa_pm25_2018, epa_pm25_2019)
 
-epafiles = list.files(path = "./Data/Processed/EPA/",pattern = "*.csv", full.names = TRUE)
-epafiles
-
-epa <- epafiles %>%
-  ldply(read.csv)
 #8  Wrangle the dataset
 epa_combined <- epa_combined %>%
 
@@ -170,6 +184,9 @@ epa_combined <- epa_combined %>%
   # Ungroup the data
   ungroup()
 
+#check with the hint
+dim(epa_combined)
+
 #9 Spread the dataset
 epa_tidy <- epa_combined %>%
   pivot_wider(names_from = AQS_PARAMETER_DESC, values_from = DAILY_AQI_VALUE)
@@ -192,16 +209,22 @@ write_csv(epa_tidy, here("Data","Processed", "EPAair_O3_PM25_NC1819_Processed.cs
 
 ```{r questions 12 and 13}
 
-#12
+#12 Generate a summary data frame, grouped by site, month, and year
+summary_data <- epa_tidy %>%
+  group_by(`Site Name`, Month, Year) %>%
+  summarise(
+    mean_Ozone = mean(Ozone, na.rm = TRUE),
+    mean_PM25 = mean(PM2.5, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  drop_na(mean_Ozone)  # Remove instances where ozone mean values are missing
 
-
-#13
-
-
+#13 Check the dimensions of the summary dataset
+dim(summary_data)
 
 ```
 
 14. Why did we use the function `drop_na` rather than `na.omit`? Hint: replace `drop_na` with `na.omit` in part 12 and observe what happens with the dimensions of the summary date frame.
 
 > Answer: 
-
+When I replace `drop_na` with `na.omit`, the dimensions changed from "239 5" to "223 5". This is because `na.omit` ignore more value. Using drop_na(mean_AQI_Ozone) removes only rows where ozone data is missing, which is what we want. Using na.omit() will also remove rows with missing PM2.5 data, which is unnecessary and will result in fewer rows than intended.
