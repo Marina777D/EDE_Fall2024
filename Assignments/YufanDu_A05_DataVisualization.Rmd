@@ -1,0 +1,204 @@
+---
+title: "Assignment 5: Data Visualization"
+author: "Yufan Du"
+date: "Fall 2024"
+output: pdf_document
+geometry: margin=2.54cm
+fig_height: 3
+fig_width: 4
+editor_options: 
+  chunk_output_type: console
+---
+
+## OVERVIEW
+
+This exercise accompanies the lessons in Environmental Data Analytics on Data Visualization 
+
+## Directions
+1. Rename this file `<FirstLast>_A05_DataVisualization.Rmd` (replacing `<FirstLast>` with your first and last name).
+2. Change "Student Name" on line 3 (above) with your name.
+3. Work through the steps, **creating code and output** that fulfill each instruction.
+4. Be sure your code is tidy; use line breaks to ensure your code fits in the knitted output.
+5. Be sure to **answer the questions** in this assignment document.
+6. When you have completed the assignment, **Knit** the text and code into a single PDF file.
+
+---
+
+## Set up your session 
+
+1. Set up your session. Load the tidyverse, lubridate, here & cowplot packages, and verify your home directory. Read in the NTL-LTER processed data files for nutrients and chemistry/physics for Peter and Paul Lakes (use the tidy `NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv` version in the Processed_KEY folder) and the processed data file for the Niwot Ridge litter dataset (use the `NEON_NIWO_Litter_mass_trap_Processed.csv` version, again from the Processed_KEY folder). 
+
+2. Make sure R is reading dates as date format; if not change the format to date.
+
+```{r initialize project}
+#1 
+# Load necessary libraries
+library(tidyverse)
+library(lubridate)
+library(here)
+library(cowplot)
+
+# Verify home directory
+here::here()
+
+# Set the file paths for the datasets
+peter_data <- read_csv(here("Data","Processed","Processed_KEY", "NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv"))
+niwo_data <- read_csv(here("Data","Processed","Processed_KEY", "NEON_NIWO_Litter_mass_trap_Processed.csv"))
+
+#2 
+# Check the structure of the data to see how the date columns are being read
+str(peter_data)
+str(niwo_data)
+
+```
+
+## Define your theme
+3. Build a theme and set it as your default theme. Customize the look of at least two of the following: 
+ * Plot background
+ * Plot title
+ * Axis labels
+ * Axis ticks/gridlines
+ * Legend
+
+```{r build plot theme}
+#3
+# Load necessary libraries
+library(ggplot2)
+
+# Define a custom theme
+my_custom_theme <- theme(
+  # Customize plot background
+  plot.background = element_rect(fill = "lightblue", color = NA), 
+  
+  # Customize plot title
+  plot.title = element_text(size = 12, face = "bold", hjust = 0.5, color = "darkblue"),
+  
+  # Customize axis labels
+  axis.title = element_text(size = 10, color = "darkblue"),
+  
+  # Customize axis ticks and gridlines
+  axis.text = element_text(size = 8, color = "black"),
+  axis.ticks = element_line(color = "black"),
+  panel.grid.major = element_line(color = "gray80", linewidth = 0.5),
+  panel.grid.minor = element_line(color = "gray90", linewidth = 0.25),
+  
+  # Customize legend
+  legend.background = element_rect(fill = "white", color = "black"),
+  legend.title = element_text(face = "bold"),
+  legend.text = element_text(size = 12)
+)
+
+# Set the custom theme as the default
+theme_set(theme_bw() + my_custom_theme)
+
+
+```
+
+## Create graphs
+For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best practices for data visualization. Ensure your theme, color palettes, axes, and additional aesthetics are edited accordingly.
+
+4. [NTL-LTER] Plot total phosphorus (`tp_ug`) by phosphate (`po4`), with separate aesthetics for Peter and Paul lakes. Add line(s) of best fit using the `lm` method. Adjust your axes to hide extreme values (hint: change the limits using `xlim()` and/or `ylim()`).
+
+```{r plot total P vs PO4}
+#4 
+#decide the extreme values to hide
+summary(peter_data$po4)
+summary(peter_data$tp_ug)
+
+#plot the graph
+ggplot(peter_data, aes(x = po4, y = tp_ug, color = lakename)) +
+  geom_point(alpha = 0.6, size = 2) +  # Add scatter plot points with transparency
+  geom_smooth(method = "lm", se = FALSE) +  # Add linear regression line (line of best fit)
+  scale_color_manual(values = c("Peter Lake" = "black", "Paul Lake" = "blue")) +  # Customize colors for lakes
+  labs(title = "Total Phosphorus vs Phosphate in Peter and Paul Lakes",
+       x = "Phosphate (ug/L)",
+       y = "Total Phosphorus (ug/L)",
+       color = "Lake Name") +
+  xlim(0, 20) +  # Adjust x-axis limits to hide extreme values
+  ylim(0, 50) +  # Adjust y-axis limits to hide extreme values
+  theme(legend.position = "bottom")  # Move legend to bottom
+
+```
+
+
+5. [NTL-LTER] Make three separate boxplots of (a) temperature, (b) TP, and (c) TN, with month as the x axis and lake as a color aesthetic. Then, create a cowplot that combines the three graphs. Make sure that only one legend is present and that graph axes are aligned. 
+
+Tips:
+* Recall the discussion on factors in the lab section as it may be helpful here. 
+* Setting an axis title in your theme to `element_blank()` removes the axis title (useful when multiple, aligned plots use the same axis values)
+* Setting a legend's position to "none" will remove the legend from a plot.
+* Individual plots can have different sizes when combined using `cowplot`.
+
+```{r Create boxplots}
+#5 
+# Load necessary libraries
+library(ggplot2)
+library(cowplot)
+
+# Ensure the 'month' column is treated as a factor
+peter_data$month <- factor(peter_data$month, levels = 1:12, labels = month.name[1:12])
+
+# Plot 1: Temperature boxplot
+plot_temp <- ggplot(peter_data, aes(x = month, y = temperature_C, fill = lakename)) +
+  geom_boxplot() +
+  labs(title = "Temperature by Month", x = "Month", y = "Temperature (°C)") +
+  theme(legend.position = "none")  # Remove legend from this plot
+
+# Plot 2: Total Phosphorus (TP) boxplot
+plot_tp <- ggplot(peter_data, aes(x = month, y = tp_ug, fill = lakename)) +
+  geom_boxplot() +
+  labs(title = "Total Phosphorus by Month", x = "Month", y = "Total Phosphorus (ug/L)") +
+  theme(legend.position = "none", axis.title.x = element_blank())  # Remove x-axis label and legend
+
+# Plot 3: Total Nitrogen (TN) boxplot
+plot_tn <- ggplot(peter_data, aes(x = month, y = tn_ug, fill = lakename)) +
+  geom_boxplot() +
+  labs(title = "Total Nitrogen by Month", x = "Month", y = "Total Nitrogen (ug/L)") +
+  theme(legend.position = "none", axis.title.x = element_blank())  # Remove x-axis label and legend
+
+# Extract the legend from one of the plots
+legend_plot <- get_legend(
+  ggplot(peter_data, aes(x = month, y = temperature_C, fill = lakename)) +
+    geom_boxplot() +
+    theme(legend.position = "bottom")  # Place legend at the bottom
+)
+
+# Combine the three plots into one cowplot, ensuring axes are aligned
+combined_plots <- plot_grid(
+  plot_temp, plot_tp, plot_tn,
+  ncol = 1,  # Arrange plots vertically
+  align = "v"  # Align the y-axis
+)
+
+# Add the shared legend at the bottom
+final_plot <- plot_grid(
+  combined_plots, legend_plot,
+  ncol = 1,  # Place legend below the plots
+  rel_heights = c(3, 0.2)  # Adjust the size ratio between the plots and the legend
+)
+
+# Display the final combined plot
+print(final_plot)
+
+
+```
+
+Question: What do you observe about the variables of interest over seasons and between lakes? 
+
+> Answer: 
+
+6. [Niwot Ridge] Plot a subset of the litter dataset by displaying only the "Needles" functional group. Plot the dry mass of needle litter by date and separate by NLCD class with a color aesthetic. (no need to adjust the name of each land use)
+
+7. [Niwot Ridge] Now, plot the same plot but with NLCD classes separated into three facets rather than separated by color. 
+
+```{r Plot litter}
+#6
+
+
+#7
+
+
+```
+Question: Which of these plots (6 vs. 7) do you think is more effective, and why? 
+
+> Answer:
