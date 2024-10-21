@@ -10,8 +10,8 @@ output:
 
 ## List of Figures
 
-1. **2018 monthly Ozone levels** ........................................... Page 4  
-2. **2019 monthly Ozone levels** ........................................... Page 4
+1. **2018 monthly Ozone levels** ........................................... 4  
+2. **2019 monthly Ozone levels** ........................................... 4
 
 ## Objectives:
 
@@ -90,7 +90,7 @@ Customize the chunk options such that the code is run but is not displayed in th
 summary_PM25 <- epa_data %>% 
   drop_na(PM2.5) %>% 
   group_by(COUNTY) %>% 
-  summarize(mean_PM2.5 = round(mean(PM2.5),2) %>%  #rounded to 2 digits
+  summarize(mean_PM2.5 = round(mean(PM2.5),2)) %>%  #rounded to 2 digits
   arrange(mean_PM2.5)
 
 #Compute mean ozone concentration for each county, sorted by value
@@ -121,7 +121,7 @@ ggplot(epa_data_2018, aes(x = factor(month(Date, label=TRUE)), y = Ozone)) +
   geom_boxplot() +
   labs(title = "Monthly Ozone concentrations (2018)", x = "Month", y = "Concentration (µg/m³)")
 ```
-```{r ozone2019, echo=FALSE, fig.align='left', fig.height=4, fig.width=6, fig.cap="2019 Monthly Ozone concentrations"}
+```{r ozone2019, echo=FALSE, warning=FALSE, fig.align='left', fig.height=4, fig.width=6, fig.cap="2019 Monthly Ozone concentrations"}
 # Filter data for 2019 and create the boxplot
 epa_data_2019 <- epa_data %>% filter(year(Date) == 2019)
 
