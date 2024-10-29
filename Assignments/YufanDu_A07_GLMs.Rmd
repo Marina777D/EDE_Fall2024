@@ -1,6 +1,6 @@
 ---
 title: "Assignment 7: GLMs (Linear Regressios, ANOVA, & t-tests)"
-author: "Student Name"
+author: "Yufan Du"
 date: "Fall 2024"
 output: pdf_document
 geometry: margin=2.54cm
@@ -26,11 +26,36 @@ This exercise accompanies the lessons in Environmental Data Analytics on general
 2. Build a ggplot theme and set it as your default theme.
 
 ```{r setup2}
-#1
+#1 
+# check working directory 
+getwd()
 
+# Load the required libraries
+library(tidyverse)  
+library(agricolae) 
+library(here)
+
+# Load the dataset 
+lake_data <- read_csv(here("Data", "Raw","NTL-LTER_Lake_ChemistryPhysics_Raw.csv"))
+
+# convert  Date type:
+lake_data <- lake_data %>%
+  mutate(sampledate = mdy(sampledate))
 
 #2
+# Define a custom ggplot theme
+custom_theme <- theme_minimal() +
+  theme(
+    text = element_text(size = 12, color = "black"),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.position = "right",
+    plot.background = element_rect(fill = "lightblue", color = NA)
+  )
 
+# Set this theme as the default for all ggplots
+theme_set(custom_theme)
 
 ```
 
@@ -39,8 +64,8 @@ Our first research question is: Does mean lake temperature recorded during July 
 
 3. State the null and alternative hypotheses for this question:
 > Answer:
-H0: 
-Ha: 
+H0: There is no relationship between lake temperature and depth in July; mean lake temperature does not change with depth across all lakes.
+Ha: There is a relationship between lake temperature and depth in July; mean lake temperature changes with depth across all lakes.
 
 
 4.  Wrangle your NTL-LTER dataset with a pipe function so that the records meet the following criteria: 
@@ -52,9 +77,25 @@ Ha:
 
 ```{r scatterplot}
 #4
+# Filter data for July, select relevant columns, and remove rows with missing values
+july_data <- lake_data %>%
+  filter(month(sampledate) == 7) %>%  # Assuming 'date_column_name' is your date column
+  select(lakename, year4, daynum, depth, temperature_C) %>%
+  drop_na()  # Remove any rows with missing values
 
 
 #5
+# Scatter plot with a linear model line
+ggplot(july_data, aes(x = depth, y = temperature_C)) +
+  geom_point(alpha = 0.5) +  # Points with 50% transparency
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +  # Linear trend line
+  scale_y_continuous(limits = c(0, 35)) +  # Limit y-axis to 0 - 35 °C
+  labs(
+    title = "Lake Temperature vs. Depth in July",
+    x = "Depth (m)",
+    y = "Temperature (°C)"
+  ) +
+  custom_theme
 
 
 ```
@@ -62,14 +103,18 @@ Ha:
 
 6. Interpret the figure. What does it suggest with regards to the response of temperature to depth? Do the distribution of points suggest about anything about the linearity of this trend?
 
-> Answer: 
+> Answer: The scatter plot suggests that temperature decreases as depth increases, indicating an inverse relationship between these two variables. The data points appear to follow a linear trend, as indicated by the straight-line fit, which implies that a simple linear model might be appropriate for describing the relationship between lake temperature and depth. 
 
 
 7. Perform a linear regression to test the relationship and display the results.
 
 ```{r linear.regression}
-#7
+#7 
+# Linear regression model of temperature by depth
+temperature_depth_model <- lm(temperature_C ~ depth, data = july_data)
 
+# Display the summary of the model to check coefficients and statistics
+summary(temperature_depth_model)
 
 ```
 
@@ -77,7 +122,7 @@ Ha:
 8. Interpret your model results in words. Include how much of the variability in temperature is explained by changes in depth, the degrees of freedom on which this finding is based, and the statistical significance of the result. Also mention how much temperature is predicted to change for every 1m change in depth. 
 
 > Answer:
-
+Based on the linear regression model, approximately X% of the variability in lake temperature is explained by changes in depth (R-squared = X). The analysis is based on N-2 degrees of freedom. The p-value associated with the depth variable is p-value, indicating that the relationship between depth and temperature is statistically significant (p < 0.05). According to the model, temperature is expected to decrease by Y °C for every 1-meter increase in depth. This result suggests a significant inverse relationship between depth and lake temperature, supporting the idea that deeper areas of the lake tend to have lower temperatures.
 
 ---
 
@@ -146,7 +191,7 @@ Let's tackle a similar question from a different approach. Here, we want to expl
 
 17. If we were just looking at Peter Lake and Paul Lake. What's another test we might explore to see whether they have distinct mean temperatures? 
 
->Answer: 
+>Answer:  
 
 
 
