@@ -1,6 +1,6 @@
 ---
 title: "Assignment 8: Time Series Analysis"
-author: "Student Name"
+author: "Yufan Du"
 date: "Fall 2024"
 output: pdf_document
 geometry: margin=2.54cm
@@ -26,15 +26,49 @@ This exercise accompanies the lessons in Environmental Data Analytics on general
 * Load the tidyverse, lubridate, zoo, and trend packages
 * Set your ggplot theme
 
-```{r}
+```{r setup}
+# check working directory 
+setwd("/home/guest/EDE_Fall2024/Data/Raw/Ozone_TimeSeries")
 
+# Load the required libraries
+library(tidyverse)  
+library(lubridate) 
+library(zoo)
+library(trend)
+library(here)
+
+# Define a custom ggplot theme
+custom_theme <- theme_minimal() +
+  theme(
+    text = element_text(size = 12, color = "black"),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.position = "right",
+    plot.background = element_rect(fill = "lightblue", color = NA)
+  )
+
+# Set this theme as the default for all ggplots
+theme_set(custom_theme)
 ```
 
 
 2. Import the ten datasets from the Ozone_TimeSeries folder in the Raw data folder. These contain ozone concentrations at Garinger High School in North Carolina from 2010-2019 (the EPA air database only allows downloads for one year at a time). Import these either individually or in bulk and then combine them into a single dataframe named `GaringerOzone` of 3589 observation and 20 variables. 
 
-```{r, message = FALSE}
+```{r combine, message = FALSE}
 #1
+# List all CSV files in the current working directory
+file_list <- list.files(path = here::here("Data", "Raw", "Ozone_TimeSeries"), pattern = "*.csv", full.names = TRUE)
+
+# Load each file and combine them into a single dataframe
+GaringerOzone <- file_list %>%
+  lapply(read.csv) %>%
+  bind_rows()
+
+
+# Check the result
+dim(GaringerOzone)  # Confirm 3589 rows and 20 columns
+head(GaringerOzone) # View the first few rows of the combined data
 
 ```
 
@@ -48,15 +82,32 @@ This exercise accompanies the lessons in Environmental Data Analytics on general
 
 6. Use a `left_join` to combine the data frames. Specify the correct order of data frames within this function so that the final dimensions are 3652 rows and 3 columns. Call your combined data frame GaringerOzone. 
 
-```{r}
-# 3
+```{r wrangle}
+# 3 
+# Convert the Date column to Date format
+GaringerOzone$Date <- mdy(GaringerOzone$Date)
+summary(GaringerOzone)  
 
-# 4
+# 4 
+# Select only the necessary columns
+GaringerOzone <- GaringerOzone %>%
+  select(Date, Daily.Max.8.hour.Ozone.Concentration, DAILY_AQI_VALUE)
 
-# 5
+summary(GaringerOzone)  
 
-# 6
+# 5 Missing data
+#Create a sequence of dates from 2010-01-01 to 2019-12-31
+Days <- data.frame(Date = seq(ymd("2010-01-01"), ymd("2019-12-31"), by = "day"))
 
+summary(GaringerOzone)  
+
+# 6 combine
+# Merge Days with GaringerOzone, filling in missing dates with NA
+GaringerOzone <- left_join(Days, GaringerOzone, by = "Date")
+
+# Check the merged dataframe
+dim(GaringerOzone)  
+summary(GaringerOzone)  
 
 ```
 
