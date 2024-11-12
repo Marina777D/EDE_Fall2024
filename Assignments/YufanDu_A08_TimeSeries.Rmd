@@ -2,7 +2,9 @@
 title: "Assignment 8: Time Series Analysis"
 author: "Yufan Du"
 date: "Fall 2024"
-output: pdf_document
+output: 
+  pdf_document:
+  latex_engine: xelatex 
 geometry: margin=2.54cm
 editor_options: 
   chunk_output_type: console
@@ -115,7 +117,7 @@ summary(GaringerOzone)
 
 7. Create a line plot depicting ozone concentrations over time. In this case, we will plot actual concentrations in ppm, not AQI values. Format your axes accordingly. Add a smoothed line showing any linear trend of your data. Does your plot suggest a trend in ozone concentration over time?
 
-```{r plot}
+```{r plot daily ozone}
 #7
 # Plot daily ozone concentrations over time with a trend line
 ggplot(GaringerOzone, aes(x = Date, y = Daily.Max.8.hour.Ozone.Concentration)) +
@@ -205,7 +207,7 @@ head(GaringerOzone.monthly.ts)
 
 11. Decompose the daily and the monthly time series objects and plot the components using the `plot()` function.
 
-```{r plot}
+```{r decomposition plot}
 #11
 # Decompose the daily time series
 GaringerOzone.daily.decomp <- stl(GaringerOzone.daily.ts, s.window = "periodic")
@@ -213,7 +215,7 @@ plot(GaringerOzone.daily.decomp, main = "Decomposition of Daily Ozone Concentrat
 
 # Decompose the monthly time series
 GaringerOzone.monthly.decomp <- decompose(GaringerOzone.monthly.ts)
-plot(GaringerOzone.monthly.decomp, main = "Decomposition of Monthly Ozone Concentration")
+plot(GaringerOzone.monthly.decomp)
 
 
 ```
@@ -237,7 +239,7 @@ smk_result
 ```
 
 > Answer: The results of the Seasonal Mann-Kendall test indicate a statistically significant trend in the monthly average ozone concentrations at Garinger High School over the period from 2010 to 2019. The test yielded a Z-value of -1.963 and a p-value of 0.04965, which is just below the significance threshold of 0.05. This suggests that the observed trend is unlikely to be due to random chance.
-The negative Z-value indicates a downward trend in ozone concentrations, meaning that ozone levels have slightly decreased over the years studied. The test statistic𝑆= -77 and variance varS=1499 support this conclusion, highlighting a small but significant decline in ozone concentration levels over time.
+The negative Z-value indicates a downward trend in ozone concentrations, meaning that ozone levels have slightly decreased over the years studied. The test statistic S= -77 and variance S=1499 support this conclusion, highlighting a small but significant decline in ozone concentration levels over time.
 
 13. Create a plot depicting mean monthly ozone concentrations over time, with both a geom_point and a geom_line layer. Edit your axis labels accordingly.
 
