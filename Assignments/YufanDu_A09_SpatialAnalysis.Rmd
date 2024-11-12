@@ -1,6 +1,6 @@
 ---
 title: "Assignment 9: Spatial Analysis in R"
-author: "Student Name"
+author: "Yufan Du"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -29,8 +29,18 @@ This exercise accompanies the lessons in Environmental Data Analytics (ENV872L) 
 ```{r Prepare workspace, error=F, warning=F}
 #1. 
 
+install.packages("mapview")
+
+# Load required libraries
+library(tidyverse)  # for data manipulation and visualization
+library(sf)         # for handling spatial data
+library(leaflet)    # for interactive maps
+library(here)       # for file path management
+library(mapview)    # for quick spatial visualization
 
 #2. 
+# Display the current project directory
+here()
 
 
 ```
@@ -46,12 +56,19 @@ In this exercise, we will be exploring stream gage height data in Nebraska corre
 
 ```{r Read the county data into an sf dataframe}
 #3. Read in Counties shapefile into an sf dataframe, filtering for just NE counties
-
+# Load the shapefile (e.g., U.S. counties)
+# Load the shapefile and filter for Nebraska counties (FIPS code 31)
+counties <- st_read(here("Data/Spatial/cb_2018_us_county_20m.shp")) %>%
+  filter(STATEFP == "31")
 
 #4. Reveal the CRS of the counties features
+# Check the CRS of the filtered dataset
+st_crs(counties)
 
 
 #5. Plot the data
+# Plot with mapview for an interactive map
+mapview(counties)
 
 
 ```
@@ -59,7 +76,7 @@ In this exercise, we will be exploring stream gage height data in Nebraska corre
 6.    What is the EPSG code of the Counties dataset? Is this a geographic or a projected coordinate reference system? (Om other words, does this CRS use angular or planar coordinate units?) To what datum is this CRS associated? (Tip: look for the EPSG code on <https://epsg.io>)
 
 > ANSWER: 
-> 
+> The EPSG code is 4269. This is a geographic CRS, meaning it uses angular units (degrees). The CRS is associated with the NAD83 (North American Datum 1983) datum.
 
 
 ### Read in gage locations csv as a dataframe, then display the column names it contains
