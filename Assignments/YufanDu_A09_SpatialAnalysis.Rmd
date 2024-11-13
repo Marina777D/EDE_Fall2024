@@ -28,9 +28,6 @@ This exercise accompanies the lessons in Environmental Data Analytics (ENV872L) 
 
 ```{r Prepare workspace, error=F, warning=F}
 #1. 
-
-install.packages("mapview")
-
 # Load required libraries
 library(tidyverse)  # for data manipulation and visualization
 library(sf)         # for handling spatial data
@@ -90,16 +87,22 @@ Next we'll read in some USGS/NWIS gage location data added to the `Data/Raw` fol
 ```{r Read in USGS Gage Locations}
 #7. Read in gage locations csv as a dataframe
 
+# Read in the CSV file, setting character columns as factors
+nwis_data <- read_csv(here("Data/Raw/NWIS_SiteInfo_NE_RAW.csv"))
 
+# Convert `site_no` and other character columns to factors
+nwis_data <- nwis_data %>%
+  mutate(across(where(is.character), as.factor))
 
 #8. Display the structure of the dataframe
-
+# Display the structure of the dataframe
+str(nwis_data)
 
 ```
 
 9.    What columns in the dataset contain the x and y coordinate values, respectively?  
 > ANSWER:
-> 
+> The column containing the x (longitude) coordinate is `dec_long_va`, and the column containing the y (latitude) coordinate is `dec_lat_va`.
 
 
 ### Convert the dataframe to a spatial features ("sf") dataframe
@@ -111,20 +114,20 @@ Next we'll read in some USGS/NWIS gage location data added to the `Data/Raw` fol
 
 ```{r Convert dataframe to sf dataframe}
 #10. Convert to an sf object
-
+nwis_sf <- nwis_data %>%
+  st_as_sf(coords = c("dec_long_va", "dec_lat_va"), crs = st_crs(counties))
 
 
 #11. Display the structure
-
-
-
+str(nwis_sf)
 
 ```
 
 12.   What new field(s) appear in the sf dataframe created? What field(s), if any, disappeared?
 
 >ANSWER: 
->
+> The new field in the `sf` dataframe is `geometry`. The fields `dec_lat_va` and `dec_long_va` have disappeared, as their information is now stored within the `geometry` field.
+
 
 
 ### Plot the gage locations on top of the counties
@@ -136,6 +139,15 @@ Next we'll read in some USGS/NWIS gage location data added to the `Data/Raw` fol
 
 ```{r Plot the spatial features}
 #13. Plot the gage locations atop the county features
+
+ggplot() +
+  geom_sf(data = counties, fill = "lightblue", color = "black", size = 0.2) +  # County boundaries
+  geom_sf(data = nwis_sf, color = "red", shape = 21, size = 2, fill = "yellow") + # Gage locations
+  labs(
+    title = "NWIS Gage Locations in Nebraska",
+    subtitle = "Yufan Du"
+  ) +
+  theme_minimal()
 
 
 ```
@@ -156,23 +168,25 @@ Lastly, we want to attach some gage height data to our site locations. I've cons
 
 ```{r Read in gage site data}
 #14. Read the site flow data into a data frame
+nwis_height_data <- read_csv(here("Data/Raw/NWIS_SiteFlowData_NE_RAW.csv"))
 
-
+#Make sure the factor
+nwis_height_data <- nwis_height_data %>%
+  mutate(across(where(is.character), as.factor))
 
 #15. Show the column names
-
-
+colnames(nwis_height_data)
 
 #16. Join the flow data to our NWIS gage location spatial dataframe
-
-
+joined_data <- nwis_sf %>%
+  inner_join(nwis_height_data, by = "site_no")
 
 #17. Show the column names in the resulting spatial dataframe
-
+colnames(joined_data)
 
 
 #18. Show the dimensions of this joined dataset
-
+dim(joined_data)
 
 
 ```
@@ -185,6 +199,18 @@ Now we can examine where the flooding appears most acute by visualizing gage hei
 
 ```{r map gage sites}
 #Map the points, sized by gage height
+
+ggplot() +
+  geom_sf(data = counties, fill = "lightblue", color = "black", size = 0.2) +  # County boundaries
+  geom_sf(data = joined_data, aes(color = as.numeric(gage_ht)), shape = 21, size = 3, fill = "orange") +
+  scale_color_gradient(low = "yellow", high = "red", name = "Gage Height") +  # Gradient for gage height
+  labs(
+    title = "Gage Height Patterns in Nebraska",
+    subtitle = "Visualizing flooding severity by gage height",
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  theme_minimal()
 
 
 ```
@@ -203,11 +229,23 @@ Up next we will do some spatial analysis with our data. To prepare for this, we 
 
 ```{r spatial analysis}
 #20 Transform the counties and gage location datasets to UTM Zone 14
+# Transform the counties dataset to UTM Zone 14N
+counties_utm <- st_transform(counties, crs = 32614)
 
-
+# Transform the gage site dataset (joined_data) to UTM Zone 14N
+joined_data_utm <- st_transform(joined_data, crs = 32614)
 
 #21 Plot the data
-
+ggplot() +
+  geom_sf(data = counties_utm, fill = "lightblue", color = "black", size = 0.2) +  # Transformed counties
+  geom_sf(data = joined_data_utm, color = "purple", shape = 21, size = 2, fill = "orange") +  # Transformed gage locations
+  labs(
+    title = "Nebraska Counties and Gage Sites in UTM Zone 14N",
+    subtitle = "Transformed spatial data with UTM projection",
+    x = "Easting (meters)",
+    y = "Northing (meters)"
+  ) +
+  theme_minimal()
 
 
 ```
@@ -227,16 +265,40 @@ Now let's zoom into a particular county and examine the gages located there.
 
 
 ```{r spatial selection}
-#22 Select the county
 
+#22 Select the county
+lancaster_county <- counties_utm %>%
+  filter(NAME == "Lancaster")
 
 #23 Spatially select gages within the selected county
-
+gage_sites_in_lancaster <- joined_data_utm %>%
+  st_intersection(lancaster_county)
 
 #24 Spatially select gages within 15 k of the selected county
-
+lancaster_buffer <- st_buffer(lancaster_county, dist = 15000)  # 15 km buffer
+# Select gage sites within this buffer
+gage_sites_near_lancaster <- joined_data_utm %>%
+  st_intersection(lancaster_buffer)
 
 #25 Plot
+
+# Plot with updated styling to ensure visibility of each layer
+ggplot() +
+  # Plot all Nebraska counties in light gray
+  geom_sf(data = counties_utm, fill = "lightgray", color = "black", size = 0.2) +
+  # Highlight Lancaster County in blue
+  geom_sf(data = lancaster_county, fill = "lightblue", color = "lightblue", size = 0.3) +
+  # Plot gage sites within Lancaster County in purple with yellow fill
+  geom_sf(data = gage_sites_in_lancaster, color = "purple", shape = 21, size = 3, fill = "purple") +
+  # Plot gage sites within 15 km of Lancaster County in red with orange fill
+  geom_sf(data = gage_sites_near_lancaster, color = "orange", shape = 22, size = 2, fill = "orange") +
+  labs(
+    title = "Gage Sites in and near Lancaster County, Nebraska",
+    subtitle = "15 km buffer around Lancaster County",
+    x = "Easting (meters)",
+    y = "Northing (meters)"
+  ) +
+  theme_minimal()
 
 
 ```
